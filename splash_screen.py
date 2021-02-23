@@ -16,10 +16,11 @@ def exit_prog():
     exit()
 
 def start():
-    for i in range (100):
+    for i in range (90):
         
         progress_bar['value'] = i
-        splash_root.update_idletasks() 
+        progress_bar.update()
+        #splash_root.update() 
         time.sleep(0.02)
 
 ########################################
