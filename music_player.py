@@ -48,7 +48,7 @@ total_audio_duration = 0
 last_volume = config_dict["last_volume"] # Last volume to be used
 total_volume = 100
 percent_of_progress = "0"
-mute = "1"
+mute = "0"
 previous_volume_percent = 0
 album_art_new_icon = ''
 total_audio_duration = 1
@@ -56,10 +56,17 @@ current_song_duration = 0
 slider_time_global = 0
 music_back_btn_progress = 0
 music_back_btn_progress_referer = 0
+double_click_event = 'None'
+pre_index = "0"
+repeat = 0
+double_click = 0
+song_index = 0
+song_ended = "None"
+song_change_tracker = 0
 ##########################################
 ####  FUNCTIONS CONFIGURATION | START ####
 ##########################################
-
+print(playlist_location)
 def location(): # Testing Function
     global song_playlist
     print(song_playlist)
@@ -67,8 +74,14 @@ def location(): # Testing Function
 
 
 def exit_prog():
+
+    global config_dict
+
     mixer.music.stop()
 
+    config_dict["last_volume"] = sound_slider.get() # Modify the last volume used
+    config_configurer.playlist_dumper(song_playlist)
+    config_configurer.config_dumper(config_dict)
     music_player_root.destroy()
 
 def minimize():
@@ -104,23 +117,89 @@ def autoplay_music():
 ## Add songs to the playlist.
 def set_playlist():
 
-    global songs_list
+    #global songs_list
+    global music_listbox
+    global playlist_location
+    global song_playlist
+    global config_dict
     #global 
 
     music_ex = ['mp3','wav','mpeg','m4a','wma','ogg']
     dir_ =  filedialog.askdirectory(initialdir=f'{os.getcwd()}',title='Select Directory')
-    os.chdir(dir_)
+    #os.chdir(dir_)
+    print(dir_+"/")
+    playlist_location = dir_+"/"
+
+    config_dict["playlist_location"] = playlist_location # Update the location of the playlist in config_dictionary
+    
     music_name['text'] = 'Playlist Updated.'
     dir_files = os.listdir(dir_)
-    songs_list = [] # List of all songs in the playlist
+
+    # Delete the items from the listbox
+
+    for song_name_index in range(len(song_playlist)):
+        music_listbox.delete(0)
+        print(song_name_index)
+
+    song_playlist = {} # Create new dictionary and remove old playlist 
     for file in dir_files:
         exten = file.split('.')[-1]
         for ex in music_ex:
             if exten == ex:
                 music_listbox.insert(END,file) # Add each file name in the playlist
-                songs_list.append(file) # Add each file in the playlist
+                song_playlist.update({(len(song_playlist)):file}) # Add each file in the playlist
+    print(str(song_playlist).encode())
+
+def next_song():
+    global percent_of_progress
+    global repeat
+    global song_change_tracker
+
+    if song_index != len(song_playlist)-1:
+        repeat = 0
+        song_change_tracker = 1
+        repeat_once_button["image"] = no_repeat_once_icon
+        percent_of_progress = str(99)
+
+    
+    print()
+
+def previous_song():
 
 
+    global percent_of_progress
+    global song_index
+    global repeat
+    global song_change_tracker
+
+    if song_index != 0:
+
+        song_change_tracker = 1
+        repeat = 0
+        song_index-=2
+        repeat_once_button["image"] = no_repeat_once_icon
+        percent_of_progress = str(99)
+        
+        
+        
+
+def repeat_once():
+
+    global repeat
+
+    if repeat == 0:
+
+        repeat_once_button["image"] = repeat_once_icon # change the icon of the repeat button to repeat once image
+
+        repeat = 1
+
+    elif repeat == 1:
+
+        repeat_once_button["image"] = no_repeat_once_icon # change the icon of the repeat button to no repeat once image
+
+        repeat = 0
+
+    print()
 
 def change_album_art():
     global song_index
@@ -158,16 +237,20 @@ def music_stop():
     global playing
     global music_back_btn_progress_referer
 
-
+    playing = 0
     mixer.music.stop() # stop the song
-    music_slider.set(0)
+    music_slider.set("0")
     # Set music playing status to False
     music_back_btn_progress_referer = 0
     play_pause_button["image"] = pause_icon
     progress_bar['value'] = 0
-    
+    music_total_time["text"] = "--:--"
     music_progress_time["text"] = "--:--"
-    playing = 0
+
+    ## Change the album art to Music player image ###
+
+    music_album_art.itemconfig(canvas_img,image=album_art_icon)
+    
 
     print()
 
@@ -212,10 +295,15 @@ def progress_value_update():
     #global total_audio_duration
     global percent_of_progress
     global current_song_duration
-
+    global song_index
+    global song_playlist
+    global playing
+    global song_change_tracker
     
-    while (playing == 1) and (float(percent_of_progress)!=100):
+    while (playing == 1) and (int(float(percent_of_progress))!=99):
 
+
+        
 
 
         current_song_duration = music_back_btn_progress_referer+mixer.music.get_pos()*0.001 # get the curret time of duration of the song in second
@@ -223,14 +311,50 @@ def progress_value_update():
         percent_of_progress = str((current_song_duration*100/total_audio_duration)) # percentage of progress
 
         music_progress_time['text'] = str(int(current_song_duration))
-
+        #print(percent_of_progress)
         progress_bar['value'] = percent_of_progress # Update the progressbar Value
         progress_bar.update()
-        music_slider.set(percent_of_progress) # Update the music slider Value
+        if playing == 1:
+
+            music_slider.set(percent_of_progress) # Update the music slider Value
         time.sleep(0.02)
         #progress_value_update()
-
+    print(song_index)
     #progress_bar.update() # Update the progressbar Value
+    print("out of loop")
+    
+    #playing = 0
+    
+
+    if ((auto_play == "0") and (song_change_tracker == 0)) and (repeat == 0) and int(float(percent_of_progress))>=99:
+        print("in music stop")
+        mixer.music.stop()
+        music_stop()
+        
+
+    elif ((auto_play == "1") or (song_change_tracker == 1)) and int(float(percent_of_progress))>=99:
+        
+        song_change_tracker = 0
+
+        if song_index<len(song_playlist):
+
+
+            song_index +=1 # If Autoplay is on then if the music ends it will play the next song
+            
+            
+            
+            print("song_index", song_index)
+            print("Hello")
+                
+            update_0()
+        elif song_index==len(song_playlist):
+            mixer.music.stop()
+            music_stop()
+            print("Playlist ended")
+
+    print(percent_of_progress)
+    print(song_index)
+
 
     #print()
 
@@ -282,7 +406,7 @@ def music_progress_button_forward_updater():
     #print()
 
 def volume_update(volume_value):
-
+    global mute
     global previous_volume_percent
 
     # Function for updating volume functions
@@ -293,11 +417,14 @@ def volume_update(volume_value):
     if volume_value=="0":
 
         sound_on_off_button["image"] = sound_off_icon # Set mute icon
+    #    mute = "1"
+        
 
 
-    else:
+    if float(volume_value)>int("0"):
 
         sound_on_off_button["image"] = sound_on_icon # Set Sound on icon
+    #    mute = "0"
 
 
 def volume_button_update():
@@ -328,13 +455,55 @@ def music_play(event):
     global playing
     global cur_playing
     global music_listbox
-    global song_index
+    global repeat
     global song_playlist
+    global pre_index
+    global percent_of_progress
+    global double_click
+    global song_index
+    global music_back_btn_progress_referer
 
     #### Load and play the Song ####
 
     #song_name = music_listbox.get(ACTIVE)
-    song_index = music_listbox.curselection()[0]
+
+    if double_click == 1:
+
+        song_index = music_listbox.curselection()[0]
+        print(song_index)
+
+    elif double_click == 0:
+
+        if song_index == pre_index:
+
+            if repeat == 0:
+                music_stop()
+            elif repeat == 1:
+                song_index = pre_index
+
+        elif song_index != pre_index:
+
+            pass
+
+        print("hey any one here")
+    print(pre_index, song_index)
+    double_click = 0
+    percent_of_progress = "0"
+    repeat = 0
+    pre_index = song_index # track the previous index
+
+    music_back_btn_progress_referer = 0
+    play_pause_button["image"] = pause_icon
+    progress_bar['value'] = 0
+    music_total_time["text"] = "--:--"
+    music_progress_time["text"] = "--:--"
+
+    mixer.music.stop()
+    print(event)
+    print(type(event))
+
+    if song_index > len(song_playlist)-1:
+        music_stop()
 
     mixer.music.load(playlist_location+song_playlist[song_index]) # Load the song from the list of songs
     mixer.music.play() # Play the song
@@ -350,18 +519,31 @@ def music_play(event):
 
 
 def double_click_music_play(event):
+    global double_click_event
+    global double_click
+    global song_index
+
+    #mixer.music.stop()
     song_index = music_listbox.curselection()[0]
+    print(song_index)
     #music_play(song_index) # Index of the double clicked song
 
     # Stop the song
     # Play the song on which it is clicked
     #os.chdir(playlist_location)
-    music_play()
     
-    
-    print(song_index, music_listbox.get(ACTIVE))
-    print(songs_list)
+    double_click = 1
+   # print(song_index, music_listbox.get(ACTIVE))
+    double_click_event = event
+    print("Hellooo")
 
+    update_0()
+    
+    
+
+def update_0():
+
+    music_play(double_click_event)
 
 def update_1():
     song_detail_update()
@@ -642,10 +824,34 @@ repeat_all_icon = ImageTk.PhotoImage(repeat_all_img)
 
 # Creating a photoimage object icon for #### Repeat Once button ####
 
+no_repeat_once_img_open = Image.open("Icons/no_repeat.png").resize((30,30), Image.ANTIALIAS)
+no_repeat_once_img = Image.new("RGBA", no_repeat_once_img_open.size, color="#1f2223")
+no_repeat_once_img.paste(no_repeat_once_img_open, (0, 0), no_repeat_once_img_open)
+no_repeat_once_icon = ImageTk.PhotoImage(no_repeat_once_img)
+
+
+# Creating a photoimage object icon for #### Repeat Once button ####
+
 repeat_once_img_open = Image.open("Icons/repeat_once.png").resize((30,30), Image.ANTIALIAS)
 repeat_once_img = Image.new("RGBA", repeat_once_img_open.size, color="#1f2223")
 repeat_once_img.paste(repeat_once_img_open, (0, 0), repeat_once_img_open)
 repeat_once_icon = ImageTk.PhotoImage(repeat_once_img)
+
+
+# Creating a photoimage object icon for #### Faast Forward button ####
+
+fast_forward_img_open = Image.open("Icons/fast_forward.png").resize((30,30), Image.ANTIALIAS)
+fast_forward_img = Image.new("RGBA", fast_forward_img_open.size, color="#1f2223")
+fast_forward_img.paste(fast_forward_img_open, (0, 0), fast_forward_img_open)
+fast_forward_icon = ImageTk.PhotoImage(fast_forward_img)
+
+
+# Creating a photoimage object icon for #### Fast Backward button ####
+
+fast_backward_img_open = Image.open("Icons/fast_backward.png").resize((30,30), Image.ANTIALIAS)
+fast_backward_img = Image.new("RGBA", fast_backward_img_open.size, color="#1f2223")
+fast_backward_img.paste(fast_backward_img_open, (0, 0), fast_backward_img_open)
+fast_backward_icon = ImageTk.PhotoImage(fast_backward_img)
 
 # Creating a photoimage object icon for #### Sound ON button ####
 
@@ -765,7 +971,7 @@ music_listbox = tk.Listbox(music_content, font=("Segoe UI", 8), height=27, highl
 for item_num in range(len(song_playlist)):
     
     music_listbox.insert(item_num, song_playlist[item_num])
-music_listbox.bind('<Double-Button>', music_play)
+music_listbox.bind('<Double-Button>', double_click_music_play)
 
 music_listbox.pack(side = TOP, fill=BOTH, padx=2, pady=5)
 
@@ -818,10 +1024,10 @@ progress_bar['value'] = 30
 
 #### Update the position of the music, slider and progress bar
 
-music_progress_button_bakward_updater = tk.Button(music_slider_set_content, image=repeat_once_icon, font=("Segoe UI", 8), foreground = "#fff", relief=FLAT, background=music_controls_color_before_click, activebackground=music_controls_color_after_click, command=music_progress_button_backward_updater)
+music_progress_button_bakward_updater = tk.Button(music_slider_set_content, image=fast_backward_icon, font=("Segoe UI", 8), foreground = "#fff", relief=FLAT, background=music_controls_color_before_click, activebackground=music_controls_color_after_click, command=music_progress_button_backward_updater)
 music_progress_button_bakward_updater.pack(side = LEFT, padx=5, pady=8)
 
-music_progress_button_forward_updater = tk.Button(music_slider_set_content, image=repeat_once_icon, font=("Segoe UI", 8), foreground = "#fff", relief=FLAT, background=music_controls_color_before_click, activebackground=music_controls_color_after_click, command=music_progress_button_forward_updater)
+music_progress_button_forward_updater = tk.Button(music_slider_set_content, image=fast_forward_icon, font=("Segoe UI", 8), foreground = "#fff", relief=FLAT, background=music_controls_color_before_click, activebackground=music_controls_color_after_click, command=music_progress_button_forward_updater)
 music_progress_button_forward_updater.pack(side = RIGHT, padx=5, pady=8)
 
 #### Slider for Music timeline ####
@@ -845,14 +1051,16 @@ play_pause_button.pack(side = LEFT, padx=8, pady=3)
 
 
 #### set Backward button ####
-backward_button = tk.Button(music_control_content, image=backward_icon, font=("Segoe UI", 8), foreground = "#fff", relief=FLAT, background=music_controls_color_before_click, activebackground=music_controls_color_after_click).pack(side = LEFT, padx=5, pady=3)
+previous_song_button = tk.Button(music_control_content, image=backward_icon, font=("Segoe UI", 8), foreground = "#fff", relief=FLAT, background=music_controls_color_before_click, activebackground=music_controls_color_after_click, command=previous_song)
+previous_song_button.pack(side = LEFT, padx=5, pady=3)
 
 #### set Stop button ####
 stop_button = tk.Button(music_control_content, image=stop_icon, font=("Segoe UI", 8), foreground = "#fff", relief=FLAT, background=music_controls_color_before_click, activebackground=music_controls_color_after_click, command=music_stop)
 stop_button.pack(side = LEFT, padx=5, pady=3)
 
 #### set Forward button ####
-forward_button = tk.Button(music_control_content, image=forward_icon, font=("Segoe UI", 8), foreground = "#fff", relief=FLAT, background=music_controls_color_before_click, activebackground=music_controls_color_after_click).pack(side = LEFT, padx=5, pady=3)
+next_song_button = tk.Button(music_control_content, image=forward_icon, font=("Segoe UI", 8), foreground = "#fff", relief=FLAT, background=music_controls_color_before_click, activebackground=music_controls_color_after_click, command=next_song)
+next_song_button.pack(side = LEFT, padx=5, pady=3)
 
 #### set Shuffle All button ####
 #shuffle_all_button = tk.Button(music_control_content, image=shuffle_all_icon, font=("Segoe UI", 8), foreground = "#fff", relief=FLAT, background=music_controls_color_before_click, activebackground=music_controls_color_after_click).pack(side = LEFT, padx=5, pady=3)
@@ -861,7 +1069,8 @@ forward_button = tk.Button(music_control_content, image=forward_icon, font=("Seg
 #repeat_all_button = tk.Button(music_control_content, image=repeat_all_icon, font=("Segoe UI", 8), foreground = "#fff", relief=FLAT, background=music_controls_color_before_click, activebackground=music_controls_color_after_click).pack(side = LEFT, padx=5, pady=3)
 
 #### set Repeat All button ####
-repeat_once_button = tk.Button(music_control_content, image=repeat_once_icon, font=("Segoe UI", 8), foreground = "#fff", relief=FLAT, background=music_controls_color_before_click, activebackground=music_controls_color_after_click).pack(side = LEFT, padx=5, pady=3)
+repeat_once_button = tk.Button(music_control_content, image=no_repeat_once_icon, font=("Segoe UI", 8), foreground = "#fff", relief=FLAT, background=music_controls_color_before_click, activebackground=music_controls_color_after_click, command=repeat_once)
+repeat_once_button.pack(side = LEFT, padx=5, pady=3)
 
 #### set Sound ON/OFF button ####
 sound_on_off_button = tk.Button(music_control_content, image=sound_off_icon, font=("Segoe UI", 8), foreground = "#fff", relief=FLAT, background=sound_control_bg_color, activebackground=sound_control_bg_color, command=volume_button_update)

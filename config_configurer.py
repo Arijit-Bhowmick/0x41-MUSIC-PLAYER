@@ -20,7 +20,24 @@ def config_loader():
 
     return config_dict
 
-def config_dumper():
+def config_dumper(new_config_dict_details):
+
+    # Saves the New Configuration details
+
+    new_config_details = ''
+
+    for config_name in (new_config_dict_details).keys():
+        
+        if config_name == (len(new_config_dict_details)-1):
+            
+            new_config_details+=f"{config_name} = {new_config_dict_details[config_name]}"
+        
+        else:
+            new_config_details+=f"{config_name} = {new_config_dict_details[config_name]}\n"
+
+    open_config_file = open("supportive_files/.config", "w")
+    open_config_file.write(new_config_details)
+    open_config_file.close()
 
     print()
 
