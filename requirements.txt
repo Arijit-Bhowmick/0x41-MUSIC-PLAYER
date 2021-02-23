@@ -1,0 +1,7 @@
+tkinter
+tinytag
+Pillow
+pygame
+ttkthemes
+mutagen
+scipy
