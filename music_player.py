@@ -66,7 +66,10 @@ song_change_tracker = 0
 ##########################################
 ####  FUNCTIONS CONFIGURATION | START ####
 ##########################################
-print(playlist_location)
+
+
+
+
 def location(): # Testing Function
     global song_playlist
     print(song_playlist)
@@ -93,6 +96,20 @@ def maximize_window():
     #print(music_player_root.winfo_screenheight(), music_player_root.winfo_screenwidth())
 
 #######################################################
+
+
+def about_player():
+
+    mb.showinfo("About",f"""This is an exclusive distribution of {music_player_name}.
+Creator of this apllication is Arijit Bhowmick.
+
+The project is available at 
+https://github.com/Arijit-Bhowmick/0x41-MEDIA-PLAYER
+
+Please support me if you want at 
+https://arijit-bhowmick.github.io/supportive_webpages/support.html
+
+Thanks For Using The Application.""")
 
 ## Autoplay option
 def autoplay_music():
@@ -937,7 +954,7 @@ about_button= tk.Menubutton(toolbar, text="ABOUT", font=("Segoe UI", 8), foregro
 about_button.menu =  Menu(about_button, tearoff = 0)
 about_button["menu"] =  about_button.menu
 
-about_button.menu.add_cascade(label="About", font=("Segoe UI", 8), foreground="#fff", background=toolbar_bg_color_before, activebackground=toolbar_bg_color_after)
+about_button.menu.add_cascade(label="About", font=("Segoe UI", 8), foreground="#fff", background=toolbar_bg_color_before, activebackground=toolbar_bg_color_after, command=about_player)
 about_button.pack(side=LEFT)
 
 
