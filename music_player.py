@@ -1028,7 +1028,7 @@ music_total_time.pack(side = RIGHT, padx=3, pady=0)
 progress_bar = ttk.Progressbar(progress_bar_content, style="TProgressbar", orient = HORIZONTAL, length = 500,  mode = 'determinate')
 progress_bar.configure()
 progress_bar.pack(fill=BOTH, padx=3, pady=3)
-progress_bar['value'] = 30
+#progress_bar['value'] = 30
 
 
 #############################################
