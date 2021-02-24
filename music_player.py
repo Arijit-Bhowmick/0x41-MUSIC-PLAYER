@@ -64,14 +64,6 @@ top_most = config_dict["top_most"]
 ##########################################
 
 
-
-
-def location(): # Testing Function
-    global song_playlist
-    print(song_playlist)
-    #song_playlist+=['1']
-
-
 def exit_prog():
     
     global playing
@@ -96,7 +88,7 @@ def minimize():
 def maximize_window():
     
     music_player_root.attributes("-fullscreen", "1")
-    #print(music_player_root.winfo_screenheight(), music_player_root.winfo_screenwidth())
+
 
 def always_on_top():
 
@@ -169,8 +161,7 @@ def set_playlist():
 
     music_ex = ['mp3','wav','mpeg','m4a','wma','ogg']
     dir_ =  filedialog.askdirectory(initialdir=f'{os.getcwd()}',title='Select Directory')
-    #os.chdir(dir_)
-    print(dir_+"/")
+
     playlist_location = dir_+"/"
 
     config_dict["playlist_location"] = playlist_location # Update the location of the playlist in config_dictionary
@@ -182,7 +173,7 @@ def set_playlist():
 
     for song_name_index in range(len(song_playlist)):
         music_listbox.delete(0)
-        print(song_name_index)
+
 
     song_playlist = {} # Create new dictionary and remove old playlist 
     for file in dir_files:
@@ -191,7 +182,7 @@ def set_playlist():
             if exten == ex:
                 music_listbox.insert(END,file) # Add each file name in the playlist
                 song_playlist.update({(len(song_playlist)):file}) # Add each file in the playlist
-    print(str(song_playlist).encode())
+
 
 def next_song():
     global percent_of_progress
@@ -204,8 +195,7 @@ def next_song():
         repeat_once_button["image"] = no_repeat_once_icon
         percent_of_progress = str(99)
 
-    
-    print()
+
 
 def previous_song():
 
@@ -242,7 +232,7 @@ def repeat_once():
 
         repeat = 0
 
-    print()
+
 
 def change_album_art():
     global song_index
@@ -251,13 +241,11 @@ def change_album_art():
     #global music_album_art
 
     tags = ID3(playlist_location+song_playlist[song_index])
-    #print("ID3 tags included in this song ------------------")
-    #print(tags.pprint())
-    #print("-------------------------------------------------")
+
     pict = tags.getall('APIC')[0].data
     im = Image.open(BytesIO(pict))
     im.save(fp="ALBUM_ART/temp.jpg") # Saves the picture of the album art
-    print("change_album")
+
     
 
 
@@ -296,8 +284,6 @@ def music_stop():
     music_album_art.itemconfig(canvas_img,image=album_art_icon)
     
 
-    print()
-
 def play_pause():
 
     global playing
@@ -317,7 +303,6 @@ def play_pause():
         mixer.music.pause()
 
     progress_value_update()
-    print()
 
 
 def song_detail_update():
@@ -355,23 +340,18 @@ def progress_value_update():
         percent_of_progress = str((current_song_duration*100/total_audio_duration)) # percentage of progress
 
         music_progress_time['text'] = str(int(current_song_duration))
-        #print(percent_of_progress)
+
         progress_bar['value'] = percent_of_progress # Update the progressbar Value
         progress_bar.update()
         if playing == 1:
 
             music_slider.set(percent_of_progress) # Update the music slider Value
         time.sleep(0.02)
-        #progress_value_update()
-    print(song_index)
-    #progress_bar.update() # Update the progressbar Value
-    print("out of loop")
-    
-    #playing = 0
+
     
 
     if ((auto_play == "0") and (song_change_tracker == 0)) and (repeat == 0) and int(float(percent_of_progress))>=99:
-        print("in music stop")
+
         mixer.music.stop()
         music_stop()
         
@@ -388,21 +368,15 @@ def progress_value_update():
             if repeat == 1:
     
                 song_index -= 1
-            
-            print("song_index", song_index)
-            print("Hello")
-                
+          
             update_0()
+            
         elif song_index==len(song_playlist):
             mixer.music.stop()
             music_stop()
-            print("Playlist ended")
-
-    print(percent_of_progress)
-    print(song_index)
 
 
-    #print()
+
 
 
 def music_progress_backward_updater():
@@ -412,13 +386,12 @@ def music_progress_backward_updater():
     global music_back_btn_progress_referer
     
     
-    print("before", current_song_duration)
+
     if current_song_duration>5:
         
         music_back_btn_progress = -5
         music_back_btn_progress_referer += (mixer.music.get_pos()*0.001)+music_back_btn_progress
-        print(music_back_btn_progress_referer)
-        print("after", current_song_duration)
+
         mixer.music.rewind()
         mixer.music.play(start=float(current_song_duration))
     else:
@@ -437,7 +410,7 @@ def music_progress_forward_updater():
     if current_song_duration<total_audio_duration:
         music_back_btn_progress = 5
         music_back_btn_progress_referer += (mixer.music.get_pos()*0.001)+music_back_btn_progress
-        print(music_back_btn_progress_referer)
+
         mixer.music.rewind()
         mixer.music.play(start=float(music_back_btn_progress_referer))
     else:
@@ -449,7 +422,6 @@ def music_progress_forward_updater():
 
 
     
-    #print()
 
 def volume_update(volume_value):
     global mute
@@ -458,8 +430,7 @@ def volume_update(volume_value):
     # Function for updating volume functions
     mixer.music.set_volume(float(volume_value)/total_volume) # Increase or decrease the volume according to slider value
     previous_volume_percent = volume_value
-    print(previous_volume_percent)
-    #print(volume_value)
+
     if volume_value=="0":
 
         sound_on_off_button["image"] = sound_off_icon # Set mute icon
@@ -476,7 +447,7 @@ def volume_button_update():
     global previous_volume_percent
     global mute
     # Function for volume button
-    #print("pre",pre_volume)
+
     if mute=="0":
     
         sound_on_off_button["image"] = sound_on_icon # Set mute icon
@@ -513,7 +484,7 @@ def music_play(event):
     if double_click == 1:
 
         song_index = music_listbox.curselection()[0]
-        print(song_index)
+
 
     elif double_click == 0:
 
@@ -530,8 +501,7 @@ def music_play(event):
 
         
 
-        print("hey any one here")
-    print(pre_index, song_index)
+
     double_click = 0
     percent_of_progress = "0"
     repeat = 0
@@ -545,8 +515,7 @@ def music_play(event):
     music_progress_time["text"] = "--:--"
 
     mixer.music.stop()
-    print(event)
-    print(type(event))
+
 
     if song_index > len(song_playlist)-1:
         music_stop()
@@ -558,7 +527,7 @@ def music_play(event):
 
     #### Change the Canvas Picture ####
     update_1()
-    print()
+
 #def load_album_art_to_canvas():
 
 
@@ -571,7 +540,7 @@ def double_click_music_play(event):
 
     #mixer.music.stop()
     song_index = music_listbox.curselection()[0]
-    print(song_index)
+
     #music_play(song_index) # Index of the double clicked song
 
     # Stop the song
@@ -579,9 +548,9 @@ def double_click_music_play(event):
     #os.chdir(playlist_location)
     
     double_click = 1
-   # print(song_index, music_listbox.get(ACTIVE))
+
     double_click_event = event
-    print("Hellooo")
+
 
     update_0()
     
