@@ -74,21 +74,11 @@ def exit_prog():
     config_dict["last_volume"] = sound_slider.get() # Modify the last volume used
     config_dict["auto_play_text"] = auto_play_text # Modify the autoplay name info in config file
     config_dict["auto_play"] = auto_play # Modify the ON/OFF value for autoplay info in config file
-#    config_dict["auto_play_color"] = auto_play_color_dict[auto_play] # Modify the Colour of Auto_Play in config file
+
     config_configurer.playlist_dumper(song_playlist)
     config_configurer.config_dumper(config_dict)
     music_player_root.destroy()
     root.destroy()
-
-def minimize():
-    music_player_root.configure(height=0,width=0)
-    #music_player_root_frame.grid_propagate(1)
-    tk.Wm.iconify(root)
-
-def maximize_window():
-    
-    music_player_root.attributes("-fullscreen", "1")
-
 
 def always_on_top():
 
@@ -528,9 +518,6 @@ def music_play(event):
     #### Change the Canvas Picture ####
     update_1()
 
-#def load_album_art_to_canvas():
-
-
 
 
 def double_click_music_play(event):
@@ -538,14 +525,9 @@ def double_click_music_play(event):
     global double_click
     global song_index
 
-    #mixer.music.stop()
+ 
     song_index = music_listbox.curselection()[0]
 
-    #music_play(song_index) # Index of the double clicked song
-
-    # Stop the song
-    # Play the song on which it is clicked
-    #os.chdir(playlist_location)
     
     double_click = 1
 
