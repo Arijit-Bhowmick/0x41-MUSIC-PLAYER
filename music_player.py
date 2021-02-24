@@ -26,23 +26,16 @@ import _thread
 
 mixer.init()
 
+music_player_name = "0x41 Music Player"
 config_dict = config_configurer.config_loader()
-
 playing = 0
 paused = 0
-mute = False
-cur_playing = ''
-con_style = 'rep_one'
-to_break = False
 current_time = 0
 auto_play_color_dict = {"0":"#bc3c3c", "1":"#9acc14"} # Auto Play option for playing music automatically
 auto_play = config_dict["auto_play"] # Provides 1 or 0 for ON/OFF auto_play mode
 auto_play_text = config_dict["auto_play_text"] # provides String for identifying auto_play ON/OFF
-#auto_play_color = config_dict["auto_play_color"] # provides the colour of the auto_play button
 last_song_index = config_dict["last_song_index"] # index of last song in the playlist
 last_song_name = config_dict["last_song_name"] # Name of the last song
-music_player_name = "0x41 Music Player"
-songs_list = []
 song_playlist = config_configurer.playlist_loader() # dictionary of all the songs | Format = {index, song_name}
 song_index = 0
 playlist_location = config_dict["playlist_location"] # Location from where the songs are fetched
@@ -50,7 +43,7 @@ total_audio_duration = 0
 last_volume = config_dict["last_volume"] # Last volume to be used
 total_volume = 100
 percent_of_progress = "0"
-mute = "0"
+mute = "1"
 previous_volume_percent = 0
 album_art_new_icon = ''
 total_audio_duration = 1
@@ -60,11 +53,12 @@ music_back_btn_progress = 0
 music_back_btn_progress_referer = 0
 double_click_event = 'None'
 pre_index = "0"
-repeat = 0
+repeat = 1
 double_click = 0
 song_index = 0
 song_ended = "None"
 song_change_tracker = 0
+top_most = config_dict["top_most"]
 ##########################################
 ####  FUNCTIONS CONFIGURATION | START ####
 ##########################################
@@ -103,6 +97,23 @@ def maximize_window():
     
     music_player_root.attributes("-fullscreen", "1")
     #print(music_player_root.winfo_screenheight(), music_player_root.winfo_screenwidth())
+
+def always_on_top():
+
+    global top_most
+
+    if top_most == 1:
+
+        music_player_root.attributes("-topmost", 1)
+
+        top_most = 0
+    
+    elif top_most == 0:
+
+        music_player_root.attributes("-topmost", 0)
+
+        top_most = 1
+
 
 #######################################################
 
@@ -150,12 +161,11 @@ def autoplay_music():
 ## Add songs to the playlist.
 def set_playlist():
 
-    #global songs_list
     global music_listbox
     global playlist_location
     global song_playlist
     global config_dict
-    #global 
+
 
     music_ex = ['mp3','wav','mpeg','m4a','wma','ogg']
     dir_ =  filedialog.askdirectory(initialdir=f'{os.getcwd()}',title='Select Directory')
@@ -375,7 +385,9 @@ def progress_value_update():
 
             song_index +=1 # If Autoplay is on then if the music ends it will play the next song
             
-            
+            if repeat == 1:
+    
+                song_index -= 1
             
             print("song_index", song_index)
             print("Hello")
@@ -451,14 +463,12 @@ def volume_update(volume_value):
     if volume_value=="0":
 
         sound_on_off_button["image"] = sound_off_icon # Set mute icon
-    #    mute = "1"
         
 
 
     if float(volume_value)>int("0"):
 
         sound_on_off_button["image"] = sound_on_icon # Set Sound on icon
-    #    mute = "0"
 
 
 def volume_button_update():
@@ -487,7 +497,6 @@ def volume_button_update():
 def music_play(event):
     global auto_play
     global playing
-    global cur_playing
     global music_listbox
     global repeat
     global song_playlist
@@ -508,22 +517,25 @@ def music_play(event):
 
     elif double_click == 0:
 
-        if song_index == pre_index:
+        if song_index != pre_index:
+    
+            pass
+
+        elif song_index == pre_index:
 
             if repeat == 0:
                 music_stop()
             elif repeat == 1:
                 song_index = pre_index
 
-        elif song_index != pre_index:
-
-            pass
+        
 
         print("hey any one here")
     print(pre_index, song_index)
     double_click = 0
     percent_of_progress = "0"
     repeat = 0
+    repeat_once_button["image"] = no_repeat_once_icon
     pre_index = song_index # track the previous index
 
     music_back_btn_progress_referer = 0
@@ -615,15 +627,10 @@ music_player_root = Toplevel(root)
 music_player_root.overrideredirect(1) #removes border but undesirably from taskbar too (usually for non toplevel windows)
 root.attributes("-alpha",0.0)
 
-
 #### Initiate a Window ####
 
-#music_player_root = Tk()
-#music_player_root.resizable(1, 0)
-#music_player_root.overrideredirect(0)
-#music_player_root.attributes("-toolwindow", "0")
 
-music_player_root_frame = tk.Frame(master=music_player_root)
+music_player_root_frame = tk.Frame(master=root)
 
 
 
@@ -690,6 +697,9 @@ titlebar_bg_color_after = "#1f2223"
 
 titlebar = tk.Frame(music_player_root, background=titlebar_bg_color_before)
 titlebar.pack(side=TOP, fill=X)
+
+### Make the window move while using Titlebar ###
+
 grip = Grip(titlebar)
 
 ###############################
@@ -714,12 +724,6 @@ music_content_bg_color_after = "#3b4045"
 music_content = tk.Frame(music_player_root, background=music_content_bg_color_before)
 music_content.pack(side=TOP, fill=BOTH)
 
-########################
-### Music content Area Frame [ Music name list and add folder button]###
-#########################
-
-#music_list = tk.Frame(music_content, background="PURPLE", width = 500, height = 400, relief=FLAT)
-#music_list.pack(side=RIGHT)
 
 ########################
 ### Music Name Frame ###
@@ -773,12 +777,6 @@ sound_control_content.pack(side=TOP, fill=X)
 #############################################
 ########## FRAMES CONFIGURATION | END #######
 #############################################
-
-############################
-####  Music list names #####
-############################
-
-music_list_names = [11,22,33,44, "hello", "world", 2313, 231, 345, 11,22,33,44, "hello", "world", 2313, 231, 345, 11,22,33,44, "hello", "world", 2313, 231, 345, 11,22,33,44, "hello", "world", 2313, 231, 345]
 
 ############################################################
 ############## ICONS  CONFIGURATION | START ################
@@ -953,15 +951,8 @@ music_player_icon_name = Label(titlebar, image=music_player_icon, text=music_pla
 
 
 #### SET ICON on close button ####
-close_button = tk.Button(titlebar, image = close_icon, relief=FLAT, background=titlebar_bg_color_before, activebackground=titlebar_bg_color_after, command=exit_prog).pack(side = RIGHT, padx = 0, pady=0)
-
-#### SET ICON on Maximize button ####
-
-#maximize_button = tk.Button(titlebar, image = maximize_icon, relief=FLAT, background=titlebar_bg_color_before, activebackground=titlebar_bg_color_after, command=maximize_window).pack(side = RIGHT, padx = 0, pady=0)
-
-#### SET ICON on Minimize button ####
-
-#minimize_button = tk.Button(titlebar, image = minimize_icon, relief=FLAT, background=titlebar_bg_color_before, activebackground=titlebar_bg_color_after, command=minimize).pack(side = RIGHT, padx = 0, pady=0)
+close_button = tk.Button(titlebar, image = close_icon, relief=FLAT, background=titlebar_bg_color_before, activebackground=titlebar_bg_color_after, command=exit_prog)
+close_button.pack(side = RIGHT, padx = 0, pady=0)
 
 #### Music Player Titlebar Name ###
 
@@ -984,6 +975,7 @@ file_menu["menu"] =  file_menu.menu
 
 #file_menu.menu.add_cascade( label="Open", font=("Segoe UI", 8), foreground="#fff", background=toolbar_bg_color_before, activebackground=toolbar_bg_color_after)
 file_menu.menu.add_cascade( label="Open Folder", font=("Segoe UI", 8), foreground="#fff", background=toolbar_bg_color_before, activebackground=toolbar_bg_color_after, command=set_playlist)
+file_menu.menu.add_cascade( label="Always On Top", font=("Segoe UI", 8), foreground="#fff", background=toolbar_bg_color_before, activebackground=toolbar_bg_color_after, command=always_on_top)
 file_menu.menu.add_separator(background="#1f2223") # Seperator between two menu Items
 file_menu.menu.add_cascade( label="Exit", font=("Segoe UI", 8), foreground="#fff", background=toolbar_bg_color_before, activebackground=toolbar_bg_color_after, command=exit_prog)
 
@@ -1025,7 +1017,6 @@ add_music_folder_button.pack(side = TOP, fill=X)
 
 #### Music Name List ####
 
-#global music_listbox
 music_listbox = tk.Listbox(music_content, font=("Segoe UI", 8), height=27, highlightthickness=0, foreground = "#fff", relief=FLAT, background=music_content_bg_color_before)
 for item_num in range(len(song_playlist)):
     
@@ -1070,7 +1061,6 @@ music_total_time.pack(side = RIGHT, padx=3, pady=0)
 progress_bar = ttk.Progressbar(progress_bar_content, style="TProgressbar", orient = HORIZONTAL, length = 500,  mode = 'determinate')
 progress_bar.configure()
 progress_bar.pack(fill=BOTH, padx=3, pady=3)
-#progress_bar['value'] = 30
 
 
 #############################################
@@ -1121,12 +1111,6 @@ stop_button.pack(side = LEFT, padx=5, pady=3)
 next_song_button = tk.Button(music_control_content, image=forward_icon, font=("Segoe UI", 8), foreground = "#fff", relief=FLAT, background=music_controls_color_before_click, activebackground=music_controls_color_after_click, command=next_song)
 next_song_button.pack(side = LEFT, padx=5, pady=3)
 
-#### set Shuffle All button ####
-#shuffle_all_button = tk.Button(music_control_content, image=shuffle_all_icon, font=("Segoe UI", 8), foreground = "#fff", relief=FLAT, background=music_controls_color_before_click, activebackground=music_controls_color_after_click).pack(side = LEFT, padx=5, pady=3)
-
-#### set Repeat All button ####
-#repeat_all_button = tk.Button(music_control_content, image=repeat_all_icon, font=("Segoe UI", 8), foreground = "#fff", relief=FLAT, background=music_controls_color_before_click, activebackground=music_controls_color_after_click).pack(side = LEFT, padx=5, pady=3)
-
 #### set Repeat All button ####
 repeat_once_button = tk.Button(music_control_content, image=no_repeat_once_icon, font=("Segoe UI", 8), foreground = "#fff", relief=FLAT, background=music_controls_color_before_click, activebackground=music_controls_color_after_click, command=repeat_once)
 repeat_once_button.pack(side = LEFT, padx=5, pady=3)
@@ -1148,26 +1132,6 @@ sound_slider.set(last_volume) # Set the last volume before the music player was 
 ##### MUSIC CONTROLS CONFIGURATION | END ####
 #############################################
 
-###############################################
-##### SOUND CONTROLS CONFIGURATION | START ####
-###############################################
-
-#### set Sound ON/OFF button ####
-#sound_on_off_button = tk.Button(sound_control_content, image=sound_off_icon, font=("Segoe UI", 8), foreground = "#fff", relief=FLAT, background=sound_control_bg_color, activebackground=sound_control_bg_color, command=volume_button_update)
-#sound_on_off_button.pack(side = LEFT, padx=5, pady=3)
-
-#### Slider for Sound ####
-
-#sound_slider = tk.Scale(sound_control_content, from_= 0, to=total_volume, width=3, length=2000, orient=HORIZONTAL, highlightthickness=0, border=0, relief=FLAT, sliderrelief=RIDGE, foreground = "#fff", background="#1f2223", activebackground="#1d3d47", troughcolor="#487e59", command=volume_update)
-#sound_slider.pack(side=LEFT, fill=X, padx=5, pady=0)
-#sound_slider.set(last_volume) # Set the last volume before the music player was closed
-
-#############################################
-##### SOUND CONTROLS CONFIGURATION | END ####
-#############################################
-
-
-
 
 ##################################################
 ####  ROOT MUSIC PLAYER CONFIGURATION | START ####
@@ -1185,30 +1149,18 @@ position_down = int(music_player_root_frame.winfo_screenheight()/4 - window_heig
 #### Music Player Position Configuration ####
 
 music_player_root.title(music_player_name)
-root.title(music_player_name)
-root.geometry(f"0x0+{position_right}+{position_down}")
 music_player_root.geometry(f"900x620+{position_right}+{position_down}")
 music_player_root.configure(background="#1f2223")
-music_player_root_frame.configure(background="#1f2223")
+
 root.iconphoto(False, app_icon)
+root.title(music_player_name)
+root.geometry(f"0x0+{position_right}+{position_down}")
+
+music_player_root_frame.configure(background="#1f2223")
+
 
 ################################################
 ####  ROOT MUSIC PLAYER CONFIGURATION | END ####
 ################################################
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 music_player_root_frame.mainloop()
