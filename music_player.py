@@ -7,7 +7,6 @@ from tkinter import messagebox as mb
 from tkinter import ttk
 import webbrowser
 import config_configurer
-#from tkinter_program.load_config import load_config
 from PIL import *
 from PIL import Image, ImageTk, ImageOps
 import time
@@ -18,10 +17,7 @@ from ttkthemes import themed_tk as ttkt
 from io import BytesIO
 from mutagen.mp3 import MP3
 from mutagen.id3 import ID3
-import threading
 import time
-import random
-import _thread
 
 
 mixer.init()
@@ -246,7 +242,7 @@ def change_album_art():
     
     ## Change the album art ###
 
-    #music_album_art_overlay["image"] = album_art_new_icon
+
     music_album_art.itemconfig(canvas_img,image=album_art_new_icon)
 
     # change to function 3
@@ -283,7 +279,7 @@ def play_pause():
         play_pause_button["image"] = pause_icon
         playing = 1
         paused = 0
-        #mixer.music.set_pos(current_song_duration)
+
         mixer.music.unpause()
 
     elif playing == 1:
@@ -311,7 +307,7 @@ def song_detail_update():
 
 def progress_value_update():
 
-    #global total_audio_duration
+
     global percent_of_progress
     global current_song_duration
     global song_index
@@ -469,7 +465,6 @@ def music_play(event):
 
     #### Load and play the Song ####
 
-    #song_name = music_listbox.get(ACTIVE)
 
     if double_click == 1:
 
@@ -924,7 +919,7 @@ file_menu= tk.Menubutton(toolbar, text="MENU", font=("Segoe UI", 8), foreground=
 file_menu.menu =  Menu ( file_menu, tearoff = 0 )
 file_menu["menu"] =  file_menu.menu
 
-#file_menu.menu.add_cascade( label="Open", font=("Segoe UI", 8), foreground="#fff", background=toolbar_bg_color_before, activebackground=toolbar_bg_color_after)
+
 file_menu.menu.add_cascade( label="Open Folder", font=("Segoe UI", 8), foreground="#fff", background=toolbar_bg_color_before, activebackground=toolbar_bg_color_after, command=set_playlist)
 file_menu.menu.add_cascade( label="Always On Top", font=("Segoe UI", 8), foreground="#fff", background=toolbar_bg_color_before, activebackground=toolbar_bg_color_after, command=always_on_top)
 file_menu.menu.add_separator(background="#1f2223") # Seperator between two menu Items
