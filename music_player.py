@@ -5,6 +5,7 @@ from tkinter.ttk import *
 from tkinter import filedialog
 from tkinter import messagebox as mb
 from tkinter import ttk
+import webbrowser
 import config_configurer
 #from tkinter_program.load_config import load_config
 from PIL import *
@@ -22,7 +23,6 @@ import time
 import random
 import _thread
 
-from scipy.io.netcdf import FILL_DOUBLE
 
 mixer.init()
 
@@ -36,7 +36,9 @@ con_style = 'rep_one'
 to_break = False
 current_time = 0
 auto_play_color_dict = {"0":"#bc3c3c", "1":"#9acc14"} # Auto Play option for playing music automatically
-auto_play = config_dict["auto_play"]
+auto_play = config_dict["auto_play"] # Provides 1 or 0 for ON/OFF auto_play mode
+auto_play_text = config_dict["auto_play_text"] # provides String for identifying auto_play ON/OFF
+#auto_play_color = config_dict["auto_play_color"] # provides the colour of the auto_play button
 last_song_index = config_dict["last_song_index"] # index of last song in the playlist
 last_song_name = config_dict["last_song_name"] # Name of the last song
 music_player_name = "0x41 Music Player"
@@ -77,18 +79,25 @@ def location(): # Testing Function
 
 
 def exit_prog():
-
+    
+    global playing
     global config_dict
 
     mixer.music.stop()
-
+    playing = 0
     config_dict["last_volume"] = sound_slider.get() # Modify the last volume used
+    config_dict["auto_play_text"] = auto_play_text # Modify the autoplay name info in config file
+    config_dict["auto_play"] = auto_play # Modify the ON/OFF value for autoplay info in config file
+#    config_dict["auto_play_color"] = auto_play_color_dict[auto_play] # Modify the Colour of Auto_Play in config file
     config_configurer.playlist_dumper(song_playlist)
     config_configurer.config_dumper(config_dict)
     music_player_root.destroy()
+    root.destroy()
 
 def minimize():
-    tk.Wm.iconify(music_player_root)
+    music_player_root.configure(height=0,width=0)
+    #music_player_root_frame.grid_propagate(1)
+    tk.Wm.iconify(root)
 
 def maximize_window():
     
@@ -97,6 +106,10 @@ def maximize_window():
 
 #######################################################
 
+
+def support():
+
+    webbrowser.open('https://arijit-bhowmick.github.io/supportive_webpages/support.html',new=1)
 
 def about_player():
 
@@ -116,12 +129,14 @@ def autoplay_music():
 
     global auto_play
     global autoplay_button
+    global auto_play_text
 
     if auto_play == "0":
 
 
         auto_play = "1"
         autoplay_button["text"] = "AUTOPLAY ON "
+        auto_play_text = "AUTOPLAY ON "
         autoplay_button["background"] = auto_play_color_dict[auto_play]
 
     elif auto_play == "1":
@@ -129,6 +144,7 @@ def autoplay_music():
 
         auto_play = "0"
         autoplay_button["text"] = "AUTOPLAY OFF"
+        auto_play_text = "AUTOPLAY OFF"
         autoplay_button["background"] = auto_play_color_dict[auto_play]
 
 ## Add songs to the playlist.
@@ -230,8 +246,9 @@ def change_album_art():
     #print("-------------------------------------------------")
     pict = tags.getall('APIC')[0].data
     im = Image.open(BytesIO(pict))
-    print("change_album")
     im.save(fp="ALBUM_ART/temp.jpg") # Saves the picture of the album art
+    print("change_album")
+    
 
 
     #### Generate the image from the file ####
@@ -376,7 +393,7 @@ def progress_value_update():
     #print()
 
 
-def music_progress_button_backward_updater():
+def music_progress_backward_updater():
     global current_song_duration
     global percent_of_progress
     global music_back_btn_progress
@@ -399,7 +416,7 @@ def music_progress_button_backward_updater():
     
     update_4()
 
-def music_progress_button_forward_updater():
+def music_progress_forward_updater():
     global current_song_duration
     global percent_of_progress
     global music_back_btn_progress
@@ -575,16 +592,38 @@ def update_4():
 
 
     progress_value_update()
+
+
+
+############################################
+#### FUNCTIONS FOR WINDOW CONFIGURATION ####
+############################################
+
+#toplevel follows root taskbar events (minimize, restore)
+def onRootIconify(event):
+    music_player_root.withdraw()
+    root.bind("<Unmap>", onRootIconify)
+def onRootDeiconify(event):
+    music_player_root.deiconify()
+    root.bind("<Map>", onRootDeiconify)
 ########################################
 ####  FUNCTIONS CONFIGURATION | END ####
 ########################################
 
+root = Tk()
+music_player_root = Toplevel(root)
+music_player_root.overrideredirect(1) #removes border but undesirably from taskbar too (usually for non toplevel windows)
+root.attributes("-alpha",0.0)
+
+
 #### Initiate a Window ####
 
-music_player_root = Tk()
-music_player_root.resizable(1, 0)
+#music_player_root = Tk()
+#music_player_root.resizable(1, 0)
 #music_player_root.overrideredirect(0)
-music_player_root.attributes("-toolwindow", "0")
+#music_player_root.attributes("-toolwindow", "0")
+
+music_player_root_frame = tk.Frame(master=music_player_root)
 
 
 
@@ -917,10 +956,12 @@ music_player_icon_name = Label(titlebar, image=music_player_icon, text=music_pla
 close_button = tk.Button(titlebar, image = close_icon, relief=FLAT, background=titlebar_bg_color_before, activebackground=titlebar_bg_color_after, command=exit_prog).pack(side = RIGHT, padx = 0, pady=0)
 
 #### SET ICON on Maximize button ####
-maximize_button = tk.Button(titlebar, image = maximize_icon, relief=FLAT, background=titlebar_bg_color_before, activebackground=titlebar_bg_color_after, command=maximize_window).pack(side = RIGHT, padx = 0, pady=0)
+
+#maximize_button = tk.Button(titlebar, image = maximize_icon, relief=FLAT, background=titlebar_bg_color_before, activebackground=titlebar_bg_color_after, command=maximize_window).pack(side = RIGHT, padx = 0, pady=0)
 
 #### SET ICON on Minimize button ####
-minimize_button = tk.Button(titlebar, image = minimize_icon, relief=FLAT, background=titlebar_bg_color_before, activebackground=titlebar_bg_color_after, command=minimize).pack(side = RIGHT, padx = 0, pady=0)
+
+#minimize_button = tk.Button(titlebar, image = minimize_icon, relief=FLAT, background=titlebar_bg_color_before, activebackground=titlebar_bg_color_after, command=minimize).pack(side = RIGHT, padx = 0, pady=0)
 
 #### Music Player Titlebar Name ###
 
@@ -941,8 +982,8 @@ file_menu= tk.Menubutton(toolbar, text="MENU", font=("Segoe UI", 8), foreground=
 file_menu.menu =  Menu ( file_menu, tearoff = 0 )
 file_menu["menu"] =  file_menu.menu
 
-file_menu.menu.add_cascade( label="Open", font=("Segoe UI", 8), foreground="#fff", background=toolbar_bg_color_before, activebackground=toolbar_bg_color_after)
-file_menu.menu.add_cascade( label="Open Folder", font=("Segoe UI", 8), foreground="#fff", background=toolbar_bg_color_before, activebackground=toolbar_bg_color_after)
+#file_menu.menu.add_cascade( label="Open", font=("Segoe UI", 8), foreground="#fff", background=toolbar_bg_color_before, activebackground=toolbar_bg_color_after)
+file_menu.menu.add_cascade( label="Open Folder", font=("Segoe UI", 8), foreground="#fff", background=toolbar_bg_color_before, activebackground=toolbar_bg_color_after, command=set_playlist)
 file_menu.menu.add_separator(background="#1f2223") # Seperator between two menu Items
 file_menu.menu.add_cascade( label="Exit", font=("Segoe UI", 8), foreground="#fff", background=toolbar_bg_color_before, activebackground=toolbar_bg_color_after, command=exit_prog)
 
@@ -955,11 +996,12 @@ about_button.menu =  Menu(about_button, tearoff = 0)
 about_button["menu"] =  about_button.menu
 
 about_button.menu.add_cascade(label="About", font=("Segoe UI", 8), foreground="#fff", background=toolbar_bg_color_before, activebackground=toolbar_bg_color_after, command=about_player)
+about_button.menu.add_cascade(label="Support Us", font=("Segoe UI", 8), foreground="#fff", background=toolbar_bg_color_before, activebackground=toolbar_bg_color_after, command=support)
 about_button.pack(side=LEFT)
 
 
 #### SET Autoplay music button ####
-autoplay_button = tk.Button(toolbar, text="AUTOPLAY OFF", font=("Segoe UI", 8), relief=FLAT, highlightthickness=0, foreground="#fff", activeforeground="#fff", background=auto_play_color_dict[auto_play], activebackground=toolbar_bg_color_after, command=autoplay_music)
+autoplay_button = tk.Button(toolbar, text=auto_play_text, font=("Segoe UI", 8), relief=FLAT, highlightthickness=0, foreground="#fff", activeforeground="#fff", background=auto_play_color_dict[auto_play], activebackground=toolbar_bg_color_after, command=autoplay_music)
 autoplay_button.pack(side = RIGHT, padx = 5, pady=0)
 
 ######################################
@@ -1041,10 +1083,10 @@ progress_bar.pack(fill=BOTH, padx=3, pady=3)
 
 #### Update the position of the music, slider and progress bar
 
-music_progress_button_bakward_updater = tk.Button(music_slider_set_content, image=fast_backward_icon, font=("Segoe UI", 8), foreground = "#fff", relief=FLAT, background=music_controls_color_before_click, activebackground=music_controls_color_after_click, command=music_progress_button_backward_updater)
+music_progress_button_bakward_updater = tk.Button(music_slider_set_content, image=fast_backward_icon, font=("Segoe UI", 8), foreground = "#fff", relief=FLAT, background=music_controls_color_before_click, activebackground=music_controls_color_after_click, command=music_progress_backward_updater)
 music_progress_button_bakward_updater.pack(side = LEFT, padx=5, pady=8)
 
-music_progress_button_forward_updater = tk.Button(music_slider_set_content, image=fast_forward_icon, font=("Segoe UI", 8), foreground = "#fff", relief=FLAT, background=music_controls_color_before_click, activebackground=music_controls_color_after_click, command=music_progress_button_forward_updater)
+music_progress_button_forward_updater = tk.Button(music_slider_set_content, image=fast_forward_icon, font=("Segoe UI", 8), foreground = "#fff", relief=FLAT, background=music_controls_color_before_click, activebackground=music_controls_color_after_click, command=music_progress_forward_updater)
 music_progress_button_forward_updater.pack(side = RIGHT, padx=5, pady=8)
 
 #### Slider for Music timeline ####
@@ -1133,19 +1175,22 @@ sound_slider.set(last_volume) # Set the last volume before the music player was 
 
 #### Gets the requested values of the height and width ####
 
-window_width = music_player_root.winfo_reqwidth()
-window_height = music_player_root.winfo_reqheight()
+window_width = music_player_root_frame.winfo_reqwidth()
+window_height = music_player_root_frame.winfo_reqheight()
 
 #### Gets both 1/4 the screen width/height and window width/height ####
-position_right = int(music_player_root.winfo_screenwidth()/4 - window_width/4)
-position_down = int(music_player_root.winfo_screenheight()/4 - window_height/4)
+position_right = int(music_player_root_frame.winfo_screenwidth()/4 - window_width/4)
+position_down = int(music_player_root_frame.winfo_screenheight()/4 - window_height/4)
 
 #### Music Player Position Configuration ####
 
 music_player_root.title(music_player_name)
+root.title(music_player_name)
+root.geometry(f"0x0+{position_right}+{position_down}")
 music_player_root.geometry(f"900x620+{position_right}+{position_down}")
 music_player_root.configure(background="#1f2223")
-music_player_root.iconphoto(False, app_icon)
+music_player_root_frame.configure(background="#1f2223")
+root.iconphoto(False, app_icon)
 
 ################################################
 ####  ROOT MUSIC PLAYER CONFIGURATION | END ####
@@ -1166,4 +1211,4 @@ music_player_root.iconphoto(False, app_icon)
 
 
 
-music_player_root.mainloop()
+music_player_root_frame.mainloop()

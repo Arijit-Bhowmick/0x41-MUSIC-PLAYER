@@ -4,4 +4,4 @@ Pillow
 pygame
 ttkthemes
 mutagen
-scipy
+webbrowser
