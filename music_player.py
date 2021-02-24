@@ -80,17 +80,17 @@ def always_on_top():
 
     global top_most
 
-    if top_most == 1:
+    if top_most == "1":
 
         music_player_root.attributes("-topmost", 1)
 
-        top_most = 0
+        top_most = "0"
     
-    elif top_most == 0:
+    elif top_most == "0":
 
         music_player_root.attributes("-topmost", 0)
 
-        top_most = 1
+        top_most = "1"
 
 
 #######################################################
