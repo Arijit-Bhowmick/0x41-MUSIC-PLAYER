@@ -146,14 +146,30 @@ def set_playlist():
 
 
     music_ex = ['mp3','wav','mpeg','m4a','wma','ogg']
-    dir_ =  filedialog.askdirectory(initialdir=f'{os.getcwd()}',title='Select Directory')
+    #dir_ =  filedialog.askdirectory(initialdir=f'{os.getcwd()}',title='Select Directory')
+    dir_ =  filedialog.askdirectory(initialdir=f'{playlist_location}',title='Select Directory')
 
-    playlist_location = dir_+"/"
+    try:
+
+        dir_files = os.listdir(dir_)
+
+    except FileNotFoundError:
+
+        # If the user close the dialog box then it will
+        # gather the previous playlist
+        dir_ = playlist_location
+        dir_files = song_playlist.values()
+
+    if playlist_location[-1] == "/":
+        playlist_location = dir_
+    else:
+        playlist_location = dir_+"/"
+    print(playlist_location)
 
     config_dict["playlist_location"] = playlist_location # Update the location of the playlist in config_dictionary
     
     music_name['text'] = 'Playlist Updated.'
-    dir_files = os.listdir(dir_)
+    
 
     # Delete the items from the listbox
 
