@@ -1,4 +1,5 @@
 from tkinter import *
+import pygame
 from tinytag import TinyTag
 import tkinter as tk
 from tkinter.ttk import *
@@ -32,6 +33,7 @@ auto_play_text = config_dict["auto_play_text"] # provides String for identifying
 last_song_index = config_dict["last_song_index"] # index of last song in the playlist
 last_song_name = config_dict["last_song_name"] # Name of the last song
 song_playlist = config_configurer.playlist_loader() # dictionary of all the songs | Format = {index, song_name}
+get_updated_playlist = [] # Compare the current playlist
 song_index = 0
 playlist_location = config_dict["playlist_location"] # Location from where the songs are fetched
 total_audio_duration = 0
@@ -54,6 +56,32 @@ song_index = 0
 song_ended = "None"
 song_change_tracker = 0
 top_most = config_dict["top_most"]
+
+##############################
+### Get current file names ###
+##############################
+
+def get_updated_playlist():
+
+    global updated_playlist
+
+    music_ex = ['mp3','wav','mpeg','m4a','wma','ogg']
+
+    updated_playlist = {}
+
+    dir = os.listdir(playlist_location)
+    
+    for item_index in range(len(dir)):
+
+        for extension in music_ex:
+
+            if dir[item_index].endswith(extension):
+
+                updated_playlist.update({item_index:dir[item_index]})
+
+    return updated_playlist
+
+#get_updated_playlist()
 ##########################################
 ####  FUNCTIONS CONFIGURATION | START ####
 ##########################################
@@ -183,6 +211,8 @@ def set_playlist():
             if exten == ex:
                 music_listbox.insert(END,file) # Add each file name in the playlist
                 song_playlist.update({(len(song_playlist)):file}) # Add each file in the playlist
+
+    
 
 
 def next_song():
@@ -501,7 +531,7 @@ def music_play(event):
 
         
 
-
+    updated_playlist = get_updated_playlist() # Retrive the updated playlist
     double_click = 0
     percent_of_progress = "0"
     repeat = 0
@@ -516,12 +546,35 @@ def music_play(event):
 
     mixer.music.stop()
 
+    old_playlist = song_playlist
 
     if song_index > len(song_playlist)-1:
         music_stop()
 
-    mixer.music.load(playlist_location+song_playlist[song_index]) # Load the song from the list of songs
-    mixer.music.play() # Play the song
+
+    try:
+
+        mixer.music.load(playlist_location+song_playlist[song_index]) # Load the song from the list of songs
+        mixer.music.play() # Play the song
+
+    except pygame.error:
+
+        song_index = 0
+
+        for song_name_index in range(len(old_playlist)):
+            music_listbox.delete(0)
+
+        #song_playlist = {} # Create new dictionary and remove old playlist
+        
+        song_playlist = updated_playlist # Update the playlist
+
+
+        for song_name in song_playlist.keys():
+            music_listbox.insert(END,song_name) # Add each file name in the playlist
+
+        music_stop()
+        
+    
     play_pause_button["image"] = pause_icon
     playing = 1
 
