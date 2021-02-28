@@ -7,7 +7,8 @@ import os, platform
 
 try:
     import tkinter, tinytag, PIL, pygame, ttkthemes, mutagen, webbrowser
-
+# For Linux sudo apt install python3-pil
+#sudo apt install python3-tk
 except ImportError:
 
     if int(platform.python_version()[0]) >= 3:
@@ -19,4 +20,4 @@ Your Python Version is {platform.python_version()}""")
 
 
 os.system("python3 splash_screen.py")
-os.system("python3 music_player.py")
+os.system("python3 music_player_linux.py")
