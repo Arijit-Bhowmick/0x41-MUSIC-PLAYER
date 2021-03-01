@@ -57,35 +57,38 @@ song_ended = "None"
 song_change_tracker = 0
 top_most = config_dict["top_most"]
 
-##############################
-### Get current file names ###
-##############################
+# 0 means that music player is running
+# 1 means that mini window is running
+minimize_maximize_tracker = 0
 
-def get_updated_playlist():
 
-    global updated_playlist
 
-    music_ex = ['mp3','wav','mpeg','m4a','wma','ogg']
 
-    updated_playlist = {}
-
-    dir = os.listdir(playlist_location)
-    
-    for item_index in range(len(dir)):
-
-        for extension in music_ex:
-
-            if dir[item_index].endswith(extension):
-
-                updated_playlist.update({item_index:dir[item_index]})
-
-    return updated_playlist
-
-#get_updated_playlist()
 ##########################################
 ####  FUNCTIONS CONFIGURATION | START ####
 ##########################################
 
+
+##############################################################
+#### if the playlist location doesn't end with /  |  START ###
+#### then it will add / or else pass the argument |       ###
+##############################################################
+
+if playlist_location[-1] != "/":
+
+    playlist_location = playlist_location+"/"
+
+elif playlist_location[-1] == "/":
+    pass
+    
+##############################################################
+#### if the playlist location doesn't end with /  |       ####
+#### then it will add / or else pass the argument |  STOP ####
+##############################################################
+
+
+def mini_exit_prog(double_click):
+    exit_prog()
 
 def exit_prog():
     
@@ -103,6 +106,44 @@ def exit_prog():
     music_player_root.destroy()
     root.destroy()
 
+def mini_minimize_prog(double_click):
+
+    global minimize_maximize_tracker
+
+    if minimize_maximize_tracker==0:
+    
+        music_player_root.attributes("-alpha", 0.0)
+        minimize_maximize_tracker = 1
+
+def minimize_prog():
+
+    global minimize_maximize_tracker
+
+    if minimize_maximize_tracker==0:
+
+        music_player_root.attributes("-alpha", 0.0)
+        minimize_maximize_tracker = 1
+
+    elif minimize_maximize_tracker==1:
+
+        music_player_root.attributes("-alpha", 1.0)
+        minimize_maximize_tracker = 0
+
+
+def maximize_prog(double_click):
+
+    global minimize_maximize_tracker
+
+    if minimize_maximize_tracker==1:
+    
+        music_player_root.attributes("-alpha", 1.0)
+        minimize_maximize_tracker = 0
+
+    music_player_root.attributes("-topmost", 1)
+    music_player_root.attributes("-topmost", 0)
+    
+
+
 def always_on_top():
 
     global top_most
@@ -110,12 +151,13 @@ def always_on_top():
     if top_most == "1":
 
         music_player_root.attributes("-topmost", 1)
-
+        music_player_root.attributes("-topmost", 1)
         top_most = "0"
     
     elif top_most == "0":
-
+        music_player_root.attributes("-topmost", 1)
         music_player_root.attributes("-topmost", 0)
+
 
         top_most = "1"
 
@@ -163,6 +205,30 @@ def autoplay_music():
         auto_play_text = "AUTOPLAY OFF"
         autoplay_button["background"] = auto_play_color_dict[auto_play]
 
+##############################
+### Get current file names ###
+##############################
+
+def get_updated_playlist():
+
+    global updated_playlist
+
+    music_ex = ['mp3','wav','mpeg','m4a','wma','ogg']
+
+    updated_playlist = {}
+
+    dir = os.listdir(playlist_location)
+    
+    for item_index in range(len(dir)):
+
+        for extension in music_ex:
+
+            if dir[item_index].endswith(extension):
+
+                updated_playlist.update({item_index:dir[item_index]})
+
+    return updated_playlist
+
 ## Add songs to the playlist.
 def set_playlist():
 
@@ -189,7 +255,7 @@ def set_playlist():
 
     if playlist_location[-1] == "/":
         playlist_location = dir_
-    else:
+    if playlist_location[-1] != "/":
         playlist_location = dir_+"/"
     print(playlist_location)
 
@@ -557,7 +623,7 @@ def music_play(event):
         mixer.music.load(playlist_location+song_playlist[song_index]) # Load the song from the list of songs
         mixer.music.play() # Play the song
 
-    except pygame.error:
+    except pygame.error or KeyError:
 
         song_index = 0
 
@@ -569,7 +635,7 @@ def music_play(event):
         song_playlist = updated_playlist # Update the playlist
 
 
-        for song_name in song_playlist.keys():
+        for song_name in song_playlist.values():
             music_listbox.insert(END,song_name) # Add each file name in the playlist
 
         music_stop()
@@ -637,9 +703,18 @@ def onRootDeiconify(event):
 ########################################
 
 root = Tk()
+root.attributes("-alpha",0.0)
+
 music_player_root = Toplevel(root)
 music_player_root.overrideredirect(1) #removes border but undesirably from taskbar too (usually for non toplevel windows)
-root.attributes("-alpha",0.0)
+#music_player_root.attributes("-topmost", 1)
+music_player_root.attributes("-alpha", 1.0)
+
+mini_app_float_window = Toplevel(music_player_root) # If Media player is minimized then it will show up
+mini_app_float_window.overrideredirect(1)
+mini_app_float_window.attributes("-topmost", 1)
+#mini_app_float_window.attributes("-alpha", minimize_maximize_tracker)
+
 
 #### Initiate a Window ####
 
@@ -715,7 +790,7 @@ titlebar.pack(side=TOP, fill=X)
 ### Make the window move while using Titlebar ###
 
 grip = Grip(titlebar)
-
+grip2 = Grip(mini_app_float_window)
 ###############################
 
 ########################
@@ -830,6 +905,12 @@ minimize_button_img = Image.new("RGBA", minimize_button_img_open.size, color=tit
 minimize_button_img.paste(minimize_button_img_open, (0, 0), minimize_button_img_open)
 minimize_icon = ImageTk.PhotoImage(minimize_button_img)
 
+#### Mini Window Icon ####
+
+mini_app_button_img_open = Image.open("Images/music_player_icon.png").resize((40,40), Image.ANTIALIAS)
+mini_app_button_img = Image.new("RGBA", mini_app_button_img_open.size, color=titlebar_bg_color_before)
+mini_app_button_img.paste(mini_app_button_img_open, (0, 0), mini_app_button_img_open)
+mini_app_icon = ImageTk.PhotoImage(mini_app_button_img)
 
 
 # Creating a photoimage object icon for #### Album Art Canvas ####
@@ -953,6 +1034,30 @@ style.configure("TProgressbar", troughrelief = 'flat', background="#0064bd", tro
 ###  STYLES CONFIGURATION | STOP ####
 #####################################
 
+#########################################
+##### MINI APP CONFIGURATION | START ####
+#########################################
+
+mini_app_icon = Label(mini_app_float_window, image=music_player_icon, text=music_player_name, font=("Segoe UI", 11), background=titlebar_bg_color_before, foreground="#149414").pack(side=LEFT, padx=10, pady=0)
+
+#### SET ICON on Mini floating window | Maximize button ####
+mini_app_maximize_button = tk.Button(mini_app_float_window, image = maximize_icon, relief=FLAT, highlightthickness=0, background=titlebar_bg_color_before, activebackground=titlebar_bg_color_after)
+mini_app_maximize_button.pack(side = LEFT, padx = 5, pady=0)
+mini_app_maximize_button.bind('<Double-Button>', maximize_prog)
+
+#### SET ICON on Mini floating window | Minimize button ####
+mini_app_minimize_button = tk.Button(mini_app_float_window, image = minimize_icon, relief=FLAT, highlightthickness=0, background=titlebar_bg_color_before, activebackground=titlebar_bg_color_after)
+mini_app_minimize_button.pack(side = LEFT, padx = 5, pady=0)
+mini_app_minimize_button.bind('<Double-Button>', mini_minimize_prog)
+
+#### SET ICON on Mini floating window | Close button ####
+mini_app_close_button = tk.Button(mini_app_float_window, image = close_icon, relief=FLAT, highlightthickness=0, background=titlebar_bg_color_before, activebackground=titlebar_bg_color_after)
+mini_app_close_button.pack(side = LEFT, padx = 5, pady=0)
+mini_app_close_button.bind('<Double-Button>', mini_exit_prog)
+
+#########################################
+##### MINI APP CONFIGURATION | STOP #####
+#########################################
 
 #########################################
 ##### TITLEBAR CONFIGURATION | START ####
@@ -967,6 +1072,10 @@ music_player_icon_name = Label(titlebar, image=music_player_icon, text=music_pla
 #### SET ICON on close button ####
 close_button = tk.Button(titlebar, image = close_icon, relief=FLAT, highlightthickness=0, background=titlebar_bg_color_before, activebackground=titlebar_bg_color_after, command=exit_prog)
 close_button.pack(side = RIGHT, padx = 0, pady=0)
+
+#### SET ICON on Minimize button ####
+minimize_button = tk.Button(titlebar, image = minimize_icon, relief=FLAT, highlightthickness=0, background=titlebar_bg_color_before, activebackground=titlebar_bg_color_after, command=minimize_prog)
+minimize_button.pack(side = RIGHT, padx = 0, pady=0)
 
 #### Music Player Titlebar Name ###
 
@@ -1162,13 +1271,22 @@ position_down = int(music_player_root_frame.winfo_screenheight()/4 - window_heig
 
 #### Music Player Position Configuration ####
 
+music_player_root.iconphoto(False, app_icon)
 music_player_root.title(music_player_name)
 music_player_root.geometry(f"900x620+{position_right}+{position_down}")
 music_player_root.configure(background="#1f2223")
 
+mini_app_float_window.iconphoto(False, app_icon)
+mini_app_float_window.title(music_player_name)
+mini_app_float_window.geometry(f"130x30+{0}+{0}")
+mini_app_float_window.configure(background=titlebar_bg_color_before)
+
+
+
 root.iconphoto(False, app_icon)
 root.title(music_player_name)
 root.geometry(f"0x0+{position_right}+{position_down}")
+
 
 music_player_root_frame.configure(background="#1f2223")
 

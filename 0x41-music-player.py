@@ -7,8 +7,7 @@ import os, platform
 
 try:
     import tkinter, tinytag, PIL, pygame, ttkthemes, mutagen, webbrowser
-# For Linux sudo apt install python3-pil
-#sudo apt install python3-tk
+
 except ImportError:
 
     print("""Please run the setup.py file to setup the required modules for this project
