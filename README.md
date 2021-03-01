@@ -5,6 +5,23 @@ Project is available on : <i>https://github.com/Arijit-Bhowmick/0x41-MEDIA-PLAYE
 
 <img src="Images/program_window.png">
 
+# USAGE
+
+Run ``` python3 setup.py ``` at first to install the required modules<br>
+or install them manually which are listed in the "requirements.txt" file <br><br>
+
+Linux based system requires, root privilages to install some modules:<br>
+Here it is: <b>Tkinter</b>, and <b>Pillow</b><br><br>
+
+In case of windows, Tkinter is already installed during the installation<br>
+of the python package.<br>
+
+After Setting up the modules you can run ``` python3 0x41-music-player.py ```<br>
+to launch the Music Player.<br>
+
+
+
+
 # SUPPORT THIS PROJECT
 
 ## Do you want to provide support ?

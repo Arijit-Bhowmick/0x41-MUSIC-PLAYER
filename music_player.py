@@ -1285,6 +1285,7 @@ mini_app_float_window.configure(background=titlebar_bg_color_before)
 
 root.iconphoto(False, app_icon)
 root.title(music_player_name)
+root.resizable(0, 0)
 root.geometry(f"0x0+{position_right}+{position_down}")
 
 
