@@ -1,4 +1,4 @@
-#import splash_screen
+
 import os, platform
 
 # If there is any problem during the installation of modules 
@@ -11,13 +11,11 @@ try:
 #sudo apt install python3-tk
 except ImportError:
 
-    if int(platform.python_version()[0]) >= 3:
-        os.system("pip3 install -r requirements.txt")
-    else:
-        print(f"""This Software only support in python versions >= 3.0.0
-Your Python Version is {platform.python_version()}""")
-        exit()
+    print("""Please run the setup.py file to setup the required modules for this project
+
+Usage: python3 setup.py""")
+    exit()
 
 
 os.system("python3 splash_screen.py")
-os.system("python3 music_player_linux.py")
+os.system("python3 music_player.py")

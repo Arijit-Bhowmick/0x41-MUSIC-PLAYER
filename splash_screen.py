@@ -1,5 +1,4 @@
 from tkinter import *
-#import tkinter as tk
 from tkinter.ttk import *
 from tkinter import ttk
 from PIL import *
@@ -130,7 +129,9 @@ splash_root.title("Splash Screen")
 splash_root.geometry(f"630x380+{position_right}+{position_down}")
 
 splash_root.configure(background="#1f2223")
+
 # Hide the Title Bar
+
 splash_root.overrideredirect(1)
 
 #################################################

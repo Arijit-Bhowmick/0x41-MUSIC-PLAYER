@@ -1,4 +1,5 @@
 from tkinter import *
+import pygame
 from tinytag import TinyTag
 import tkinter as tk
 from tkinter.ttk import *
@@ -12,8 +13,7 @@ from PIL import Image, ImageTk, ImageOps
 import time
 import os
 from pygame import mixer
-from tkinter import ttk
-from ttkthemes import themed_tk as ttkt
+#from ttkthemes import themed_tk as ttkt
 from io import BytesIO
 from mutagen.mp3 import MP3
 from mutagen.id3 import ID3
@@ -33,6 +33,7 @@ auto_play_text = config_dict["auto_play_text"] # provides String for identifying
 last_song_index = config_dict["last_song_index"] # index of last song in the playlist
 last_song_name = config_dict["last_song_name"] # Name of the last song
 song_playlist = config_configurer.playlist_loader() # dictionary of all the songs | Format = {index, song_name}
+get_updated_playlist = [] # Compare the current playlist
 song_index = 0
 playlist_location = config_dict["playlist_location"] # Location from where the songs are fetched
 total_audio_duration = 0
@@ -55,6 +56,32 @@ song_index = 0
 song_ended = "None"
 song_change_tracker = 0
 top_most = config_dict["top_most"]
+
+##############################
+### Get current file names ###
+##############################
+
+def get_updated_playlist():
+
+    global updated_playlist
+
+    music_ex = ['mp3','wav','mpeg','m4a','wma','ogg']
+
+    updated_playlist = {}
+
+    dir = os.listdir(playlist_location)
+    
+    for item_index in range(len(dir)):
+
+        for extension in music_ex:
+
+            if dir[item_index].endswith(extension):
+
+                updated_playlist.update({item_index:dir[item_index]})
+
+    return updated_playlist
+
+#get_updated_playlist()
 ##########################################
 ####  FUNCTIONS CONFIGURATION | START ####
 ##########################################
@@ -184,6 +211,8 @@ def set_playlist():
             if exten == ex:
                 music_listbox.insert(END,file) # Add each file name in the playlist
                 song_playlist.update({(len(song_playlist)):file}) # Add each file in the playlist
+
+    
 
 
 def next_song():
@@ -502,7 +531,7 @@ def music_play(event):
 
         
 
-
+    updated_playlist = get_updated_playlist() # Retrive the updated playlist
     double_click = 0
     percent_of_progress = "0"
     repeat = 0
@@ -517,12 +546,35 @@ def music_play(event):
 
     mixer.music.stop()
 
+    old_playlist = song_playlist
 
     if song_index > len(song_playlist)-1:
         music_stop()
 
-    mixer.music.load(playlist_location+song_playlist[song_index]) # Load the song from the list of songs
-    mixer.music.play() # Play the song
+
+    try:
+
+        mixer.music.load(playlist_location+song_playlist[song_index]) # Load the song from the list of songs
+        mixer.music.play() # Play the song
+
+    except pygame.error:
+
+        song_index = 0
+
+        for song_name_index in range(len(old_playlist)):
+            music_listbox.delete(0)
+
+        #song_playlist = {} # Create new dictionary and remove old playlist
+        
+        song_playlist = updated_playlist # Update the playlist
+
+
+        for song_name in song_playlist.keys():
+            music_listbox.insert(END,song_name) # Add each file name in the playlist
+
+        music_stop()
+        
+    
     play_pause_button["image"] = pause_icon
     playing = 1
 
@@ -913,7 +965,7 @@ music_player_icon_name = Label(titlebar, image=music_player_icon, text=music_pla
 
 
 #### SET ICON on close button ####
-close_button = tk.Button(titlebar, image = close_icon, relief=FLAT, background=titlebar_bg_color_before, activebackground=titlebar_bg_color_after, command=exit_prog)
+close_button = tk.Button(titlebar, image = close_icon, relief=FLAT, highlightthickness=0, background=titlebar_bg_color_before, activebackground=titlebar_bg_color_after, command=exit_prog)
 close_button.pack(side = RIGHT, padx = 0, pady=0)
 
 #### Music Player Titlebar Name ###
@@ -936,10 +988,10 @@ file_menu.menu =  Menu ( file_menu, tearoff = 0 )
 file_menu["menu"] =  file_menu.menu
 
 
-file_menu.menu.add_cascade( label="Open Folder", font=("Segoe UI", 8), foreground="#fff", background=toolbar_bg_color_before, activebackground=toolbar_bg_color_after, command=set_playlist)
-file_menu.menu.add_cascade( label="Always On Top", font=("Segoe UI", 8), foreground="#fff", background=toolbar_bg_color_before, activebackground=toolbar_bg_color_after, command=always_on_top)
+file_menu.menu.add_command( label="Open Folder", font=("Segoe UI", 8), foreground="#fff", background=toolbar_bg_color_before, activebackground=toolbar_bg_color_after, command=set_playlist)
+file_menu.menu.add_command( label="Always On Top", font=("Segoe UI", 8), foreground="#fff", background=toolbar_bg_color_before, activebackground=toolbar_bg_color_after, command=always_on_top)
 file_menu.menu.add_separator(background="#1f2223") # Seperator between two menu Items
-file_menu.menu.add_cascade( label="Exit", font=("Segoe UI", 8), foreground="#fff", background=toolbar_bg_color_before, activebackground=toolbar_bg_color_after, command=exit_prog)
+file_menu.menu.add_command( label="Exit", font=("Segoe UI", 8), foreground="#fff", background=toolbar_bg_color_before, activebackground=toolbar_bg_color_after, command=exit_prog)
 
 file_menu.pack(side=LEFT)
 
@@ -949,8 +1001,8 @@ about_button= tk.Menubutton(toolbar, text="ABOUT", font=("Segoe UI", 8), foregro
 about_button.menu =  Menu(about_button, tearoff = 0)
 about_button["menu"] =  about_button.menu
 
-about_button.menu.add_cascade(label="About", font=("Segoe UI", 8), foreground="#fff", background=toolbar_bg_color_before, activebackground=toolbar_bg_color_after, command=about_player)
-about_button.menu.add_cascade(label="Support Us", font=("Segoe UI", 8), foreground="#fff", background=toolbar_bg_color_before, activebackground=toolbar_bg_color_after, command=support)
+about_button.menu.add_command(label="About", font=("Segoe UI", 8), foreground="#fff", background=toolbar_bg_color_before, activebackground=toolbar_bg_color_after, command=about_player)
+about_button.menu.add_command(label="Support Us", font=("Segoe UI", 8), foreground="#fff", background=toolbar_bg_color_before, activebackground=toolbar_bg_color_after, command=support)
 about_button.pack(side=LEFT)
 
 
@@ -974,7 +1026,7 @@ music_album_art.pack(side = LEFT, padx = 3, pady=0)
 canvas_img = music_album_art.create_image(0, 4, image=album_art_icon, anchor=NW)
 
 #### Add Music Folder button #### 
-add_music_folder_button = tk.Button(music_content, text = "Add Music Folder", font=("Segoe UI", 8), foreground = "#9acc14", relief=FLAT, background=music_content_bg_color_after, activebackground="#292e33", command=set_playlist)
+add_music_folder_button = tk.Button(music_content, text = "Add Music Folder", font=("Segoe UI", 8), foreground = "#9acc14", relief=FLAT, highlightthickness=0, background=music_content_bg_color_after, activebackground="#292e33", command=set_playlist)
 add_music_folder_button.pack(side = TOP, fill=X)
 
 #### Music Name List ####
@@ -1035,10 +1087,10 @@ progress_bar.pack(fill=BOTH, padx=3, pady=3)
 
 #### Update the position of the music, slider and progress bar
 
-music_progress_button_bakward_updater = tk.Button(music_slider_set_content, image=fast_backward_icon, font=("Segoe UI", 8), foreground = "#fff", relief=FLAT, background=music_controls_color_before_click, activebackground=music_controls_color_after_click, command=music_progress_backward_updater)
+music_progress_button_bakward_updater = tk.Button(music_slider_set_content, image=fast_backward_icon, font=("Segoe UI", 8), foreground = "#fff", relief=FLAT, highlightthickness=0, background=music_controls_color_before_click, activebackground=music_controls_color_after_click, command=music_progress_backward_updater)
 music_progress_button_bakward_updater.pack(side = LEFT, padx=5, pady=8)
 
-music_progress_button_forward_updater = tk.Button(music_slider_set_content, image=fast_forward_icon, font=("Segoe UI", 8), foreground = "#fff", relief=FLAT, background=music_controls_color_before_click, activebackground=music_controls_color_after_click, command=music_progress_forward_updater)
+music_progress_button_forward_updater = tk.Button(music_slider_set_content, image=fast_forward_icon, font=("Segoe UI", 8), foreground = "#fff", relief=FLAT, highlightthickness=0, background=music_controls_color_before_click, activebackground=music_controls_color_after_click, command=music_progress_forward_updater)
 music_progress_button_forward_updater.pack(side = RIGHT, padx=5, pady=8)
 
 #### Slider for Music timeline ####
@@ -1057,28 +1109,28 @@ music_slider.pack(side=LEFT, fill=X, padx=5, pady=0)
 ###############################################
 
 #### set Play/Pause button ####
-play_pause_button = tk.Button(music_control_content, image=play_icon, font=("Segoe UI", 8), foreground = "#fff", relief=FLAT, background=music_controls_color_before_click, activebackground=music_controls_color_after_click, command=play_pause)
+play_pause_button = tk.Button(music_control_content, image=play_icon, font=("Segoe UI", 8), foreground = "#fff", relief=FLAT, highlightthickness=0, background=music_controls_color_before_click, activebackground=music_controls_color_after_click, command=play_pause)
 play_pause_button.pack(side = LEFT, padx=8, pady=3)
 
 
 #### set Backward button ####
-previous_song_button = tk.Button(music_control_content, image=backward_icon, font=("Segoe UI", 8), foreground = "#fff", relief=FLAT, background=music_controls_color_before_click, activebackground=music_controls_color_after_click, command=previous_song)
+previous_song_button = tk.Button(music_control_content, image=backward_icon, font=("Segoe UI", 8), foreground = "#fff", relief=FLAT, highlightthickness=0, background=music_controls_color_before_click, activebackground=music_controls_color_after_click, command=previous_song)
 previous_song_button.pack(side = LEFT, padx=5, pady=3)
 
 #### set Stop button ####
-stop_button = tk.Button(music_control_content, image=stop_icon, font=("Segoe UI", 8), foreground = "#fff", relief=FLAT, background=music_controls_color_before_click, activebackground=music_controls_color_after_click, command=music_stop)
+stop_button = tk.Button(music_control_content, image=stop_icon, font=("Segoe UI", 8), foreground = "#fff", relief=FLAT, highlightthickness=0, background=music_controls_color_before_click, activebackground=music_controls_color_after_click, command=music_stop)
 stop_button.pack(side = LEFT, padx=5, pady=3)
 
 #### set Forward button ####
-next_song_button = tk.Button(music_control_content, image=forward_icon, font=("Segoe UI", 8), foreground = "#fff", relief=FLAT, background=music_controls_color_before_click, activebackground=music_controls_color_after_click, command=next_song)
+next_song_button = tk.Button(music_control_content, image=forward_icon, font=("Segoe UI", 8), foreground = "#fff", relief=FLAT, highlightthickness=0, background=music_controls_color_before_click, activebackground=music_controls_color_after_click, command=next_song)
 next_song_button.pack(side = LEFT, padx=5, pady=3)
 
 #### set Repeat All button ####
-repeat_once_button = tk.Button(music_control_content, image=no_repeat_once_icon, font=("Segoe UI", 8), foreground = "#fff", relief=FLAT, background=music_controls_color_before_click, activebackground=music_controls_color_after_click, command=repeat_once)
+repeat_once_button = tk.Button(music_control_content, image=no_repeat_once_icon, font=("Segoe UI", 8), foreground = "#fff", relief=FLAT, highlightthickness=0, background=music_controls_color_before_click, activebackground=music_controls_color_after_click, command=repeat_once)
 repeat_once_button.pack(side = LEFT, padx=5, pady=3)
 
 #### set Sound ON/OFF button ####
-sound_on_off_button = tk.Button(music_control_content, image=sound_off_icon, font=("Segoe UI", 8), foreground = "#fff", relief=FLAT, background=sound_control_bg_color, activebackground=sound_control_bg_color, command=volume_button_update)
+sound_on_off_button = tk.Button(music_control_content, image=sound_off_icon, font=("Segoe UI", 8), foreground = "#fff", relief=FLAT, highlightthickness=0, background=sound_control_bg_color, activebackground=sound_control_bg_color, command=volume_button_update)
 sound_on_off_button.pack(side = LEFT, padx=5, pady=3)
 
 #### Slider for Sound ####
