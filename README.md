@@ -22,7 +22,7 @@ to launch the Music Player.<br>
 
 ## Tested Systems
 
-Windows 10 Pro (64-bit)
+Windows 10 Pro (64-bit)<br>
 Linux Mint 20.1 "Ulyssa" - Xfce (64-bit)
 
 # SUPPORT THIS PROJECT
