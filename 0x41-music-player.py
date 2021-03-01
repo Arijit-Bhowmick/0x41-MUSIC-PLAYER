@@ -6,7 +6,7 @@ import os, platform
 # while in the current directory
 
 try:
-    import tkinter, tinytag, PIL, pygame, ttkthemes, mutagen, webbrowser
+    import tkinter, tinytag, PIL, pygame, mutagen, webbrowser
 
 except ImportError:
 
