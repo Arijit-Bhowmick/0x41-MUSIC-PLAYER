@@ -172,7 +172,7 @@ def support():
 def about_player():
 
     mb.showinfo("About",f"""This is an exclusive distribution of {music_player_name}.
-Creator of this apllication is Arijit Bhowmick.
+Creator of this application is Arijit Bhowmick.
 
 The project is available at 
 https://github.com/Arijit-Bhowmick/0x41-MEDIA-PLAYER
