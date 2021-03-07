@@ -1,5 +1,7 @@
-# 0x41-MEDIA-PLAYER
-Just a 1st sem Python Project
+# 0x41-MUSIC-PLAYER
+
+This Music Player is created as a 1st sem python project<br>
+and is now availabe to everyone.
 
 Project is available on : <i>https://github.com/Arijit-Bhowmick/0x41-MEDIA-PLAYER</i>
 
