@@ -1,5 +1,7 @@
-# 0x41-MEDIA-PLAYER
-Just a 1st sem Python Project
+# 0x41-MUSIC-PLAYER
+
+This Music Player was created as a 1st sem python project<br>
+and is now availabe to everyone.
 
 Project is available on : <i>https://github.com/Arijit-Bhowmick/0x41-MEDIA-PLAYER</i>
 
@@ -20,7 +22,7 @@ After Setting up the modules you can run ``` python3 0x41-music-player.py ```<br
 to launch the Music Player.<br>
 
 
-## Tested Systems
+## Tested on
 
 Windows 10 Pro (64-bit)<br>
 Linux Mint 20.1 "Ulyssa" - Xfce (64-bit)
